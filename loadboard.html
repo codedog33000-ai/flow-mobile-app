@@ -1,0 +1,2524 @@
+1<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Flowboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lib/leaflet.css" />
+    <script src="lib/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS Variables - Brighter FLOW Theme */
+        :root {
+            --primary: #00e5ff;
+            --primary-dark: #0e7490;
+            --secondary: #38bdf8;
+            --accent: #7c3aed;
+            --bg-dark: #0f172a;
+            --bg-darker: #0a1628;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           🔧 ANTI-FLICKER CSS v2 - Complete flickering prevention
+           ═══════════════════════════════════════════════════════════════════ */
+
+        /* GPU acceleration for smooth rendering - ANTI-FLICKERING */
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            /* Disable smooth scrolling to prevent flicker */
+            scroll-behavior: auto !important;
+        }
+
+        /* MASTER FLICKER FIX: Disable ALL animations and effects */
+        *, *::before, *::after {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            animation: none !important;
+            transition: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            will-change: auto !important;
+        }
+
+        /* Disable animations globally for Electron to prevent flickering */
+        @media (prefers-reduced-motion: reduce), (display-mode: standalone) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Force disable animations in Electron */
+        .electron-mode *, .electron-mode *::before, .electron-mode *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        /* ANTI-FLICKER FIX v3: Disable backdrop-filter in Electron (causes severe flickering) */
+        .electron-mode * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        /* Stabilize buttons and controls */
+        button,
+        .bulk-btn,
+        .platform-badge,
+        [id*="Status"],
+        [id*="btn"] {
+            transform: translateZ(0) !important;
+            will-change: auto !important;
+            contain: layout style !important;
+            isolation: isolate !important;
+        }
+
+        /* Prevent table row reflow flickering */
+        .loads-table tbody {
+            contain: content !important;
+        }
+
+        .loads-table tr {
+            transform: translateZ(0) !important;
+        }
+
+        /* FLOW DIAGONAL WAVE THEME - Brighter with Stars */
+        body {
+            font-family: 'Inter', system-ui, sans-serif !important;
+            width: 100% !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: var(--bg-darker) !important;
+            color: var(--text-light) !important;
+            position: relative;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        /* Particle Canvas for Stars - Disabled for performance */
+        #particles-canvas {
+            display: none !important;
+        }
+
+        /* Background Glow Effects - Optimized for performance */
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            will-change: auto; /* Disable will-change to prevent flicker */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .bg-glow-1 {
+            top: -150px;
+            left: -150px;
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+        }
+
+        .bg-glow-2 {
+            bottom: -150px;
+            right: -150px;
+            width: 400px;
+            height: 400px;
+            background: var(--accent);
+        }
+
+        .bg-glow-3 {
+            display: none; /* Disable third glow for performance */
+        }
+
+        /* HEADER - Frosted Glass */
+        .header {
+            padding: 20px 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            background: rgba(10, 22, 40, 0.85) !important;
+            backdrop-filter: blur(20px) !important;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.15) !important;
+            margin: 0 !important;
+            position: relative;
+            z-index: 100;
+        }
+
+        /* FLOW ANIMATED ICON - Diagonal Wave Style */
+        .flow-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .wave-container {
+            width: 36px;
+            height: 30px;
+        }
+
+        .wave-container svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .wave {
+            fill: none;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            /* animations disabled to prevent flickering */
+        }
+
+        .wave1, .wave2, .wave3 {
+            /* all wave animations disabled */
+        }
+
+        /* FLOW TITLE - Brush Marker Style */
+        .flow-title {
+            font-family: 'Permanent Marker', cursive !important;
+            font-size: 2.2rem !important;
+            font-weight: 400 !important;
+            letter-spacing: 3px !important;
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+            text-transform: uppercase !important;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.2) !important;
+        }
+
+        .subtitle {
+            font-size: 0.7rem !important;
+            color: rgba(255,255,255,0.7) !important;
+            font-weight: 400 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 3px !important;
+            margin-top: 4px !important;
+        }
+
+        /* TAB NAVIGATION - Diagonal Wave */
+        .tab-nav {
+            display: flex !important;
+            padding: 0 24px !important;
+            gap: 6px !important;
+            background: rgba(10, 22, 40, 0.8) !important;
+            backdrop-filter: blur(20px) !important;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1) !important;
+            margin: 0 !important;
+            position: relative;
+            z-index: 100;
+        }
+
+        .tab-btn {
+            padding: 16px 24px !important;
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            cursor: pointer !important;
+            color: rgba(255,255,255,0.6) !important;
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 3px solid transparent !important;
+            transition: all 0.2s !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .tab-btn:hover {
+            color: rgba(255,255,255,0.85) !important;
+            background: rgba(255,255,255,0.05) !important;
+        }
+
+        .tab-btn.active {
+            color: var(--primary) !important;
+            border-bottom-color: var(--primary) !important;
+            background: rgba(0, 229, 255, 0.15) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Tab Badges */
+        .tab-badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .tab-btn.active .tab-badge {
+            background: var(--primary);
+            color: #0a1628;
+        }
+
+        .tab-badge.posted-badge {
+            background: rgba(124, 58, 237, 0.3);
+            color: #c4b5fd;
+        }
+
+        .tab-btn.active .tab-badge.posted-badge {
+            background: #7c3aed;
+            color: white;
+        }
+
+        /* STATUS BAR */
+        .status-bar {
+            padding: 12px 24px !important;
+            background: rgba(10, 22, 40, 0.75) !important;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.08) !important;
+            margin: 0 !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+        }
+
+        .status-indicator {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: rgba(255,255,255,0.9) !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px !important;
+            height: 10px !important;
+            border-radius: 50% !important;
+            background: #22c55e !important;
+            /* animation disabled to prevent flickering */
+            box-shadow: 0 0 10px rgba(34,197,94,0.6) !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        .stats-mini {
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            color: rgba(255,255,255,0.7) !important;
+            display: flex;
+            gap: 16px;
+        }
+
+        .stats-mini strong {
+            color: white !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+        }
+
+        /* MAIN LAYOUT */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 20px;
+            padding: 24px;
+            min-height: calc(100vh - 180px);
+            position: relative;
+            z-index: 50;
+        }
+
+        /* When left sidebar is hidden, use 2-column layout */
+        .main-container.sidebar-hidden {
+            grid-template-columns: 1fr 320px;
+        }
+
+        /* CARDS - Frosted Glass with Glow */
+        .card,
+        .section,
+        .panel {
+            border-radius: 20px !important;
+            padding: 22px !important;
+            margin-bottom: 20px !important;
+            background: rgba(10, 22, 40, 0.75) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(0, 229, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover,
+        .section:hover,
+        .panel:hover {
+            border-color: rgba(0, 229, 255, 0.3) !important;
+            box-shadow: 0 12px 40px rgba(0, 229, 255, 0.15) !important;
+        }
+
+        .card h3,
+        .section h3,
+        .panel-title {
+            font-size: 0.9rem !important;
+            font-weight: 700 !important;
+            color: var(--primary) !important;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2) !important;
+            padding-bottom: 12px !important;
+            margin-bottom: 16px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.3) !important;
+        }
+
+        /* BUTTONS - Frosted Glass with Glow */
+        button,
+        .btn {
+            padding: 10px 20px !important;
+            border-radius: 12px !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            border: 1px solid rgba(0, 229, 255, 0.2) !important;
+            cursor: pointer !important;
+            background: rgba(0, 229, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            color: white !important;
+            transition: all 0.3s !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover,
+        .btn:hover {
+            background: rgba(0, 229, 255, 0.25) !important;
+            border-color: rgba(0, 229, 255, 0.4) !important;
+            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.2) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Success Button */
+        .btn-success {
+            background: #22c55e !important;
+            color: white !important;
+            box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4) !important;
+        }
+
+        .btn-success:hover {
+            background: #16a34a !important;
+        }
+
+        /* Danger Button */
+        .btn-danger {
+            background: #ef4444 !important;
+            color: white !important;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4) !important;
+        }
+
+        /* Secondary Button */
+        .btn-secondary {
+            background: rgba(255,255,255,0.15) !important;
+            color: rgba(255,255,255,0.9) !important;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.25) !important;
+        }
+
+        /* Primary Button */
+        .btn-primary {
+            background: rgba(255,255,255,0.25) !important;
+            border: 1px solid rgba(255,255,255,0.3) !important;
+        }
+
+        .btn-primary:hover {
+            background: rgba(255,255,255,0.35) !important;
+        }
+
+        /* INPUTS - Frosted */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            background: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 10px !important;
+            padding: 12px 16px !important;
+            font-size: 13px !important;
+            color: white !important;
+            transition: all 0.2s ease !important;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: rgba(255,255,255,0.4) !important;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+            outline: none !important;
+            background: rgba(255,255,255,0.15) !important;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255,255,255,0.5) !important;
+        }
+
+        select option {
+            background: #0891b2;
+            color: white;
+        }
+
+        /* LABELS */
+        label,
+        .filter-label {
+            display: block;
+            font-size: 0.7rem !important;
+            font-weight: 600 !important;
+            color: rgba(255,255,255,0.85) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1.5px !important;
+            margin-bottom: 8px;
+        }
+
+        /* Filter Group */
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Equipment Grid */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .equipment-btn {
+            padding: 8px !important;
+            font-size: 0.7rem !important;
+            background: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+
+        .equipment-btn.selected {
+            background: rgba(255,255,255,0.3) !important;
+            border-color: rgba(255,255,255,0.5) !important;
+        }
+
+        /* Load Cards */
+        .loads-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            contain: layout style;
+        }
+
+        .load-card {
+            background: rgba(255,255,255,0.12) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease !important;
+            will-change: background, border-color;
+            contain: layout style;
+        }
+
+        .load-card:hover {
+            background: rgba(255,255,255,0.18) !important;
+            border-color: rgba(255,255,255,0.35) !important;
+        }
+
+        .load-card.selected {
+            background: rgba(255,255,255,0.22) !important;
+            border-color: rgba(255,255,255,0.5) !important;
+        }
+
+        .load-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .load-route {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .load-city {
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+        }
+
+        .load-state {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+
+        .route-arrow {
+            color: white;
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        .load-price {
+            text-align: right;
+        }
+
+        .price-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: #86efac;
+        }
+
+        .price-rate {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .load-card-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .equipment-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            font-size: 11px;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.available {
+            background: rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        .status-badge.booked {
+            background: rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+        }
+
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+        }
+
+        /* Panel Tabs */
+        .panel-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255,255,255,0.08);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 10px !important;
+            font-size: 0.7rem !important;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .panel-tab.active {
+            background: rgba(255,255,255,0.2) !important;
+            border-radius: 8px;
+        }
+
+        /* Rate Display */
+        .rate-display {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .rate-main {
+            font-size: 36px;
+            font-weight: 700;
+            color: #86efac;
+            margin-bottom: 4px;
+        }
+
+        .rate-per-mile {
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .rate-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .rate-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .rate-item-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .rate-item-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .rate-item-value.low { color: #fca5a5; }
+        .rate-item-value.avg { color: #fcd34d; }
+        .rate-item-value.high { color: #86efac; }
+
+        .market-trend {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .trend-icon { font-size: 18px; }
+        .trend-text { font-size: 12px; color: rgba(255,255,255,0.9); }
+        .trend-text strong { color: #86efac; }
+
+        /* Map */
+        .map-container {
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #quote-map { height: 100%; width: 100%; }
+
+        /* Post Form */
+        .post-form { display: none; }
+        .post-form.active { display: block; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            gap: 20px;
+            margin: 16px 0;
+        }
+
+        .checkbox-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            color: rgba(255,255,255,0.8) !important;
+            cursor: pointer;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Flowboard Header */
+        .flowboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .load-count {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .load-count span {
+            color: white;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .view-btn {
+            padding: 8px 16px !important;
+            font-size: 0.7rem !important;
+            background: transparent !important;
+        }
+
+        .view-btn.active {
+            background: rgba(255,255,255,0.2) !important;
+            border-radius: 6px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.5) !important;
+        }
+
+        .modal-body { padding: 24px; }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 13px;
+            /* animation disabled in electron mode via CSS class */
+        }
+
+        /* Only enable animation outside Electron */
+        :not(.electron-mode) .toast {
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { border-left: 4px solid #22c55e; }
+        .toast.error { border-left: 4px solid #ef4444; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* Live Badge */
+        .live-badge {
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            background: #22c55e;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           DAT-STYLE TABLE LAYOUT
+           ═══════════════════════════════════════════════════════════════════ */
+
+        .loads-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .loads-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1200px;
+        }
+
+        .loads-table thead {
+            background: rgba(255,255,255,0.12);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .loads-table th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.9);
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s ease;
+        }
+
+        .loads-table th:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .loads-table th.sortable::after {
+            content: '↕';
+            margin-left: 5px;
+            opacity: 0.5;
+            font-size: 10px;
+        }
+
+        .loads-table th.sorted-asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+
+        .loads-table th.sorted-desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+
+        .loads-table tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .loads-table tbody tr:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .loads-table tbody tr.selected {
+            background: rgba(255,255,255,0.18);
+            border-left: 3px solid #22c55e;
+        }
+
+        .loads-table tbody tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .loads-table tbody tr:nth-child(even):hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .loads-table td {
+            padding: 10px;
+            vertical-align: middle;
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* DAT Column Styles */
+        .col-age {
+            width: 50px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+        }
+
+        .col-age.fresh {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .col-age.stale {
+            color: #f59e0b;
+        }
+
+        .col-origin, .col-dest {
+            min-width: 140px;
+        }
+
+        .city-primary {
+            font-weight: 600;
+            color: white;
+            display: block;
+        }
+
+        .city-secondary {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .col-trip {
+            width: 80px;
+            text-align: center;
+        }
+
+        .trip-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .trip-miles {
+            font-weight: 600;
+            color: white;
+        }
+
+        .trip-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+        }
+
+        .col-equip {
+            width: 70px;
+            text-align: center;
+        }
+
+        .equip-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .equip-badge.van { background: rgba(59, 130, 246, 0.3); border-color: rgba(59, 130, 246, 0.5); }
+        .equip-badge.reefer { background: rgba(6, 182, 212, 0.3); border-color: rgba(6, 182, 212, 0.5); }
+        .equip-badge.flatbed { background: rgba(245, 158, 11, 0.3); border-color: rgba(245, 158, 11, 0.5); }
+        .equip-badge.stepdeck { background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.5); }
+
+        .col-pickup {
+            width: 90px;
+        }
+
+        .pickup-date {
+            font-weight: 500;
+        }
+
+        .pickup-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .col-weight {
+            width: 80px;
+            text-align: right;
+        }
+
+        .col-length {
+            width: 60px;
+            text-align: center;
+        }
+
+        .col-company {
+            min-width: 150px;
+        }
+
+        .company-name {
+            font-weight: 500;
+            color: white;
+            display: block;
+        }
+
+        .company-contact {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .col-dh {
+            width: 60px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .dh-value {
+            display: block;
+        }
+
+        .dh-value.short { color: #22c55e; }
+        .dh-value.medium { color: #f59e0b; }
+        .dh-value.long { color: #ef4444; }
+
+        .col-cs {
+            width: 50px;
+            text-align: center;
+        }
+
+        .cs-score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .cs-score.excellent { background: #22c55e; color: white; }
+        .cs-score.good { background: #84cc16; color: white; }
+        .cs-score.fair { background: #f59e0b; color: white; }
+        .cs-score.poor { background: #ef4444; color: white; }
+
+        .col-rate {
+            width: 100px;
+            text-align: right;
+        }
+
+        .rate-total {
+            font-size: 16px;
+            font-weight: 700;
+            color: #86efac;
+            display: block;
+        }
+
+        .rate-rpm {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .col-actions {
+            width: 100px;
+            text-align: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+        }
+
+        .action-btn.book {
+            background: #22c55e !important;
+        }
+
+        .action-btn.book:hover {
+            background: #16a34a !important;
+        }
+
+        /* Table View Toggle */
+        .view-btn.active[data-view="table"] ~ .loads-grid {
+            display: none;
+        }
+
+        .loads-table-container.hidden {
+            display: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           POSTED LOADS MANAGEMENT - AI AUTO-REPOST
+           ═══════════════════════════════════════════════════════════════════ */
+        .posted-loads-section {
+            display: none;
+        }
+
+        .posted-loads-section.active {
+            display: block;
+        }
+
+        .posted-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(10, 22, 40, 0.85);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+        }
+
+        .auto-repost-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 22px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 11px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-color: #22c55e;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 1px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .toggle-status {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .toggle-status.running {
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .repost-interval {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .repost-interval label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .repost-interval select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .repost-interval select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        .posted-bulk-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .bulk-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            /* Anti-flicker properties */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: opacity, transform;
+            min-width: 70px;
+            justify-content: center;
+        }
+
+        .bulk-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Platform icons for DAT/Truckstop buttons */
+        .platform-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            object-fit: contain;
+            background: white;
+            padding: 1px;
+        }
+
+        .bulk-btn.delete-all {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.delete-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .bulk-btn.repost-all {
+            background: linear-gradient(135deg, #00e5ff, #0891b2);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.repost-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 229, 255, 0.4);
+        }
+
+        .bulk-btn.repost-now {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.repost-now:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+
+        /* DAT-specific buttons */
+        .bulk-btn.dat-only {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.dat-only:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .bulk-btn.dat-delete {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.dat-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+
+        /* Truckstop-specific buttons */
+        .bulk-btn.ts-only {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.ts-only:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .bulk-btn.ts-delete {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.ts-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        .bulk-btn.refresh-sheet {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            border: none;
+            color: white;
+        }
+
+        .bulk-btn.refresh-sheet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        /* Posted Load Row Actions */
+        .posted-load-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .posted-action-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .posted-action-btn.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .posted-action-btn.delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .posted-action-btn.repost {
+            background: rgba(0, 229, 255, 0.2);
+            color: #67e8f9;
+        }
+
+        .posted-action-btn.repost:hover {
+            background: #00e5ff;
+            color: #0a1628;
+        }
+
+        /* Platform badges */
+        .platform-badges {
+            display: flex;
+            gap: 4px;
+        }
+
+        .platform-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .platform-badge.dat {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .platform-badge.truckstop {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fcd34d;
+        }
+
+        .last-repost-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Rate Per Mile Color Classes */
+        .col-rpm {
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .high-rpm {
+            color: #86efac !important;
+            text-shadow: 0 0 8px rgba(134, 239, 172, 0.4);
+        }
+
+        .mid-rpm {
+            color: #fcd34d !important;
+        }
+
+        .low-rpm {
+            color: #fca5a5 !important;
+        }
+
+        /* Posted Load Status Indicators */
+        .posting-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+            /* animation disabled to prevent flickering */
+        }
+
+        .status-indicator-dot.pending {
+            background: #f59e0b;
+            /* animation disabled to prevent flickering */
+        }
+
+        .status-indicator-dot.error {
+            background: #ef4444;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* Quick Stats Dashboard */
+        .quick-stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px 24px;
+            background: rgba(10, 22, 40, 0.75);
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0, 229, 255, 0.3);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card.highlight {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .stat-card.highlight .stat-value {
+            color: #86efac;
+        }
+
+        .stat-card.warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .stat-card.warning .stat-value {
+            color: #fcd34d;
+        }
+
+        /* Keyboard Shortcut Hints */
+        .kbd-hint {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-family: monospace;
+        }
+
+        /* Enhanced Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.6;
+            /* animation disabled to prevent flickering */
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .empty-state-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .empty-state-action {
+            margin-top: 20px;
+        }
+
+        /* Row hover highlight for tables */
+        .loads-table tbody tr {
+            position: relative;
+        }
+
+        .loads-table tbody tr::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+
+        .loads-table tbody tr:hover::before {
+            background: var(--primary);
+        }
+
+        .next-repost-countdown {
+            font-size: 12px;
+            color: #00e5ff;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: rgba(0, 229, 255, 0.15);
+            border-radius: 6px;
+        }
+
+        /* Checkbox Column */
+        .col-checkbox {
+            width: 40px;
+            text-align: center;
+        }
+
+        .row-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #22c55e;
+        }
+
+        /* Bulk Actions Bar */
+        .bulk-actions {
+            display: none;
+            padding: 12px 16px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .bulk-actions.visible {
+            display: flex;
+        }
+
+        .bulk-count {
+            font-weight: 600;
+            color: #86efac;
+        }
+
+        .bulk-action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Quick Filter Pills */
+        .quick-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-filter-pill {
+            padding: 6px 14px !important;
+            font-size: 11px !important;
+            border-radius: 20px !important;
+            background: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+
+        .quick-filter-pill.active {
+            background: rgba(255,255,255,0.25) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+        }
+
+        /* Results Summary */
+        .results-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .results-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: white;
+        }
+
+        .results-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(14, 116, 144, 0.98);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            color: white;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.highlighted {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .autocomplete-item .city-name {
+            font-weight: 500;
+        }
+
+        .autocomplete-item .state-abbr {
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .autocomplete-no-results {
+            padding: 12px 16px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* Ensure inputs with autocomplete get proper styling */
+        input.autocomplete-active {
+            border-radius: 10px 10px 0 0 !important;
+            border-bottom-color: rgba(255,255,255,0.3) !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 240px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 220px 1fr 260px;
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .main-container {
+                grid-template-columns: 1fr 280px;
+            }
+            .main-container > aside:first-child { display: none; } /* Hide left filter sidebar */
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 16px;
+            }
+            .quote-panel { display: none; }
+            .load-card-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+    <!-- EARLY ELECTRON DETECTION - Must run before body renders to prevent flicker -->
+    <script>
+        (function() {
+            // Check if running in Electron (flowboardBridge is exposed via preload)
+            if (typeof window !== 'undefined') {
+                // Check multiple ways Electron might be detected
+                const isElectron = window.flowboardBridge ||
+                                   navigator.userAgent.indexOf('Electron') > -1 ||
+                                   (window.process && window.process.type === 'renderer');
+                if (isElectron) {
+                    document.documentElement.classList.add('electron-mode');
+                    console.log('[Flowboard] Early Electron detection - anti-flicker CSS activated');
+                }
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Particle Canvas for Stars -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Background Glow Effects -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="flow-icon">
+                <div class="wave-container">
+                    <svg viewBox="0 0 40 32">
+                        <path class="wave wave1" d="M4,8 Q12,4 20,8 T36,8"></path>
+                        <path class="wave wave2" d="M4,16 Q12,12 20,16 T36,16"></path>
+                        <path class="wave wave3" d="M4,24 Q12,20 20,24 T36,24"></path>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <p class="subtitle">Flowboard & Rate Management</p>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="live-badge">
+                <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
+                Live
+            </span>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-view="search">Search Loads <span class="tab-badge" id="search-badge">0</span></button>
+        <button class="tab-btn" data-view="my-loads">My Loads <span class="tab-badge" id="my-loads-badge">0</span></button>
+        <button class="tab-btn" data-view="posted">Posted Loads <span class="tab-badge posted-badge" id="posted-badge">0</span></button>
+        <button class="tab-btn" data-view="history">History</button>
+    </nav>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span>Connected to Flowboard</span>
+        </div>
+        <div class="stats-mini">
+            <span>Loads: <strong id="total-loads">8</strong></span>
+            <span>Avg Rate: <strong id="header-avg-rate">$2.98/mi</strong></span>
+        </div>
+    </div>
+
+    <!-- Quick Stats Dashboard -->
+    <div class="quick-stats-dashboard" id="quick-stats-dashboard">
+        <div class="stat-card">
+            <span class="stat-value" id="stat-total-loads">0</span>
+            <span class="stat-label">Total Loads</span>
+        </div>
+        <div class="stat-card highlight">
+            <span class="stat-value" id="stat-posted-loads">0</span>
+            <span class="stat-label">Posted Loads</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="stat-avg-rpm">$0.00</span>
+            <span class="stat-label">Avg $/Mile</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar - Filters -->
+        <aside class="card" style="height: fit-content; position: sticky; top: 20px;">
+            <h3>Search Filters</h3>
+
+            <div class="filter-group">
+                <label class="filter-label">Origin</label>
+                <input type="text" id="filter-origin" placeholder="City, State or ZIP">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Origin Radius (miles)</label>
+                <input type="number" id="filter-origin-radius" value="100" min="0" max="500">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Destination</label>
+                <input type="text" id="filter-destination" placeholder="City, State or ZIP">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Destination Radius (miles)</label>
+                <input type="number" id="filter-dest-radius" value="100" min="0" max="500">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Equipment Type</label>
+                <div class="equipment-grid">
+                    <button class="equipment-btn selected" data-type="V">Van</button>
+                    <button class="equipment-btn" data-type="R">Reefer</button>
+                    <button class="equipment-btn" data-type="F">Flatbed</button>
+                    <button class="equipment-btn" data-type="SD">Step Deck</button>
+                    <button class="equipment-btn" data-type="PO">Power Only</button>
+                    <button class="equipment-btn" data-type="HS">Hotshot</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Pickup Date Range</label>
+                <div class="filter-row">
+                    <input type="date" id="filter-date-from">
+                    <input type="date" id="filter-date-to">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Weight (lbs)</label>
+                <div class="filter-row">
+                    <input type="number" id="filter-weight-min" placeholder="Min">
+                    <input type="number" id="filter-weight-max" placeholder="Max">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Rate per Mile ($)</label>
+                <div class="filter-row">
+                    <input type="number" id="filter-rpm-min" placeholder="Min" step="0.01">
+                    <input type="number" id="filter-rpm-max" placeholder="Max" step="0.01">
+                </div>
+            </div>
+
+            <button class="btn-primary" id="search-btn" style="width: 100%; margin-bottom: 10px;">
+                Search Loads
+            </button>
+
+            <button class="btn-primary" id="refresh-live-btn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #10b981, #059669);">
+                🔄 Refresh Live Loads (DAT/TS)
+            </button>
+
+            <button class="btn-secondary" id="clear-filters-btn" style="width: 100%;">
+                Clear Filters
+            </button>
+        </aside>
+
+        <!-- Main Content - Load List -->
+        <main>
+            <!-- Quick Filters - DAT Style -->
+            <div class="quick-filters">
+                <button class="quick-filter-pill active" data-filter="all">All Loads</button>
+                <button class="quick-filter-pill" data-filter="van">Van</button>
+                <button class="quick-filter-pill" data-filter="reefer">Reefer</button>
+                <button class="quick-filter-pill" data-filter="flatbed">Flatbed</button>
+                <button class="quick-filter-pill" data-filter="high-rate">$3+/mi</button>
+                <button class="quick-filter-pill" data-filter="short-haul">&lt;300 mi</button>
+                <button class="quick-filter-pill" data-filter="long-haul">500+ mi</button>
+            </div>
+
+            <!-- Results Summary - DAT Style -->
+            <div class="results-summary">
+                <div class="results-info">
+                    <span class="results-count"><span id="load-count">0</span> loads found</span>
+                    <div class="results-stats">
+                        <span class="stat-item">Avg Rate: <span class="stat-value" id="avg-rate">$0.00</span>/mi</span>
+                        <span class="stat-item">Avg Miles: <span class="stat-value" id="avg-miles">0</span></span>
+                    </div>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="list">Cards</button>
+                    <button class="view-btn" data-view="table">Table</button>
+                    <button class="view-btn" data-view="map">Map</button>
+                </div>
+            </div>
+
+            <!-- Bulk Actions Bar -->
+            <div class="bulk-actions" id="bulk-actions">
+                <span class="bulk-count"><span id="selected-count">0</span> selected</span>
+                <div class="bulk-action-btns">
+                    <button class="btn-secondary action-btn" onclick="exportSelected()">Export</button>
+                    <button class="btn-secondary action-btn" onclick="saveSelected()">Save</button>
+                    <button class="btn-success action-btn" onclick="bookSelected()">Book All</button>
+                </div>
+            </div>
+
+            <!-- DAT-Style Table View (hidden by default) -->
+            <div class="loads-table-container hidden" id="loads-table-container">
+                <table class="loads-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox">
+                                <input type="checkbox" class="row-checkbox" id="select-all-loads" title="Select All">
+                            </th>
+                            <th class="col-age sortable" data-sort="age">Age</th>
+                            <th class="col-origin sortable" data-sort="origin">Origin</th>
+                            <th class="col-dest sortable" data-sort="destination">Destination</th>
+                            <th class="col-trip sortable" data-sort="miles">Trip</th>
+                            <th class="col-equip sortable" data-sort="equipment">Equip</th>
+                            <th class="col-pickup sortable" data-sort="pickup">Pickup</th>
+                            <th class="col-weight sortable" data-sort="weight">Weight</th>
+                            <th class="col-length">Len</th>
+                            <th class="col-company sortable" data-sort="company">Company</th>
+                            <th class="col-dh" title="Deadhead to Origin">DH-O</th>
+                            <th class="col-cs" title="Credit Score">CS</th>
+                            <th class="col-rate sortable" data-sort="rate">Rate</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loads-table-body">
+                        <!-- Table rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card View (default view) -->
+            <div class="loads-grid" id="loads-container">
+                <!-- Load cards will be inserted here -->
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 POSTED LOADS MANAGEMENT SECTION - AI AUTO-REPOST (Compact)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <div class="posted-loads-section" id="posted-loads-section">
+                <!-- Compact Control Bar -->
+                <div class="posted-controls" style="display: grid; grid-template-columns: auto 1fr auto; gap: 12px; padding: 10px 14px;">
+                    <!-- Left: Toggle -->
+                    <div class="auto-repost-toggle" style="display: flex; align-items: center; gap: 8px;">
+                        <div class="toggle-switch" id="auto-repost-toggle" title="Enable AI Auto-Repost" style="width: 44px; height: 22px;"></div>
+                        <div>
+                            <span style="font-size: 12px; font-weight: 600; color: white;">🤖 AI</span>
+                            <span class="toggle-status" id="auto-repost-status" style="font-size: 10px; padding: 2px 6px;">OFF</span>
+                        </div>
+                    </div>
+
+                    <!-- Center: Auto-Repost Rows -->
+                    <div class="auto-repost-controls" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 0; background: transparent; border: none;">
+                        <!-- DAT -->
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(16, 185, 129, 0.15); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <span style="color: #10b981; font-weight: 600; font-size: 11px;">DAT</span>
+                            <span id="datStatusDot" style="width: 6px; height: 6px; border-radius: 50%; background: #64748b;"></span>
+                            <span id="datStatusText" style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase;">STOPPED</span>
+                            <button class="bulk-btn" id="dat-auto-repost-btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 4px 8px; font-size: 10px; margin-left: 4px; min-width: 60px;">🚀 START</button>
+                        </div>
+                        <!-- Truckstop -->
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(59, 130, 246, 0.15); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <span style="color: #3b82f6; font-weight: 600; font-size: 11px;">Truckstop</span>
+                            <span id="truckstopStatusDot" style="width: 6px; height: 6px; border-radius: 50%; background: #64748b;"></span>
+                            <span id="truckstopStatusText" style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase;">STOPPED</span>
+                            <button class="bulk-btn" id="truckstop-auto-repost-btn" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 4px 8px; font-size: 10px; margin-left: 4px; min-width: 60px;">🚀 START</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Repost Button -->
+                    <button class="bulk-btn repost-now" id="repost-now-btn" title="Repost All" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 8px 12px; font-size: 11px; white-space: nowrap; min-width: 90px;">
+                        <span>⚡</span> REPOST
+                    </button>
+                </div>
+
+                <!-- Secondary Actions Row -->
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; background: rgba(10, 22, 40, 0.6); border-radius: 8px; margin-bottom: 10px;">
+                    <!-- DAT Actions -->
+                    <button class="bulk-btn dat-only" id="repost-dat-btn" title="Repost DAT" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 5px 10px; font-size: 10px; min-width: 75px; contain: layout style;">
+                        <span class="btn-prefix" style="font-weight: 700;">D</span><span class="btn-text"> Repost</span>
+                    </button>
+                    <button class="bulk-btn dat-delete" id="delete-dat-btn" title="Delete DAT" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 5px 10px; font-size: 10px; min-width: 75px; contain: layout style;">
+                        <span class="btn-prefix" style="font-weight: 700;">D</span><span class="btn-text"> Delete</span>
+                    </button>
+                    <!-- TS Actions -->
+                    <button class="bulk-btn ts-only" id="repost-ts-btn" title="Repost Truckstop" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; padding: 5px 10px; font-size: 10px; min-width: 80px; contain: layout style;">
+                        <span class="btn-prefix" style="font-weight: 700;">TS</span><span class="btn-text"> Repost</span>
+                    </button>
+                    <button class="bulk-btn ts-delete" id="delete-ts-btn" title="Delete Truckstop" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 5px 10px; font-size: 10px; min-width: 80px; contain: layout style;">
+                        <span class="btn-prefix" style="font-weight: 700;">TS</span><span class="btn-text"> Delete</span>
+                    </button>
+                    <!-- Delete All -->
+                    <button class="bulk-btn delete-all" id="delete-all-btn" title="Delete All" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 5px 10px; font-size: 10px; margin-left: auto; contain: layout style;">
+                        🗑️ Delete All
+                    </button>
+                </div>
+
+                <!-- Posted Loads Stats - Compact -->
+                <div class="results-summary" style="margin-bottom: 10px; padding: 8px 14px; background: rgba(10, 22, 40, 0.5); border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-weight: 600; color: white; font-size: 12px;">
+                        <span id="posted-count">0</span> loads posted
+                    </span>
+                    <div style="display: flex; gap: 12px; align-items: center; font-size: 11px;">
+                        <span style="color: #10b981;"><span style="font-weight: 700;">D</span> <span id="dat-count">0</span></span>
+                        <span style="color: #3b82f6;"><span style="font-weight: 700;">TS</span> <span id="ts-count">0</span></span>
+                        <span style="color: rgba(255,255,255,0.6);">Last: <span id="last-repost-time">Never</span></span>
+                    </div>
+                </div>
+
+                <!-- Posted Loads Table -->
+                <div class="loads-table-container">
+                    <table class="loads-table">
+                        <thead>
+                            <tr>
+                                <th class="col-checkbox">
+                                    <input type="checkbox" class="row-checkbox" id="select-all-posted" title="Select all">
+                                </th>
+                                <th class="col-origin sortable" data-sort="origin">Origin</th>
+                                <th class="col-dest sortable" data-sort="destination">Destination</th>
+                                <th class="col-equip sortable" data-sort="equipment">Equip</th>
+                                <th class="col-miles sortable" data-sort="miles">Miles</th>
+                                <th class="col-rate sortable" data-sort="rate">Rate</th>
+                                <th class="col-rpm sortable" data-sort="rpm">$/Mile</th>
+                                <th>Platforms</th>
+                                <th>Posted</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="posted-loads-table-body">
+                            <!-- Posted load rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="posted-empty-state" style="display: none;">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-title">No Posted Loads</div>
+                    <div class="empty-state-subtitle">Your loads from Google Sheets will appear here. Click "Refresh from Sheet" to import loads, or use the "Post Load" tab to add manually.</div>
+                    <div class="empty-state-action">
+                        <button class="btn-primary" onclick="document.getElementById('refresh-sheet-btn')?.click()">
+                            🔄 Refresh from Sheet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel - Quote Calculator -->
+        <aside class="card quote-panel" style="max-height: calc(100vh - 180px); overflow-y: auto; position: sticky; top: 20px;">
+            <h3 class="panel-title">Rate Tools</h3>
+
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-tab="quote">Quote</button>
+                <button class="panel-tab" data-tab="post">Post Load</button>
+            </div>
+
+            <!-- Quote Calculator Tab -->
+            <div class="quote-content" id="quote-tab">
+                <div class="map-container">
+                    <div id="quote-map"></div>
+                </div>
+
+                <div class="rate-display">
+                    <div class="rate-main" id="rate-estimate">$0.00</div>
+                    <div class="rate-per-mile" id="rate-per-mile">$0.00/mile - 0 miles</div>
+                </div>
+
+                <div class="rate-breakdown">
+                    <div class="rate-item">
+                        <div class="rate-item-label">Low</div>
+                        <div class="rate-item-value low" id="rate-low">$0.00</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-item-label">Average</div>
+                        <div class="rate-item-value avg" id="rate-avg">$0.00</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-item-label">High</div>
+                        <div class="rate-item-value high" id="rate-high">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="market-trend" id="market-trend">
+                    <span class="trend-icon">📈</span>
+                    <span class="trend-text">Market is <strong>trending up</strong> on this lane</span>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Quick Quote - Origin</label>
+                    <input type="text" id="quote-origin" placeholder="City, State">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Quick Quote - Destination</label>
+                    <input type="text" id="quote-destination" placeholder="City, State">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Equipment</label>
+                    <select id="quote-equipment">
+                        <option value="V">Van</option>
+                        <option value="R">Reefer</option>
+                        <option value="F">Flatbed</option>
+                        <option value="SD">Step Deck</option>
+                        <option value="PO">Power Only</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="get-quote-btn" style="width: 100%;">
+                    Get Rate Quote
+                </button>
+            </div>
+
+            <!-- Post Load Tab -->
+            <div class="post-form" id="post-tab">
+                <div class="form-row">
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Origin City</label>
+                        <input type="text" id="post-origin-city" placeholder="City">
+                    </div>
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Origin State</label>
+                        <input type="text" id="post-origin-state" placeholder="ST" maxlength="2">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Destination City</label>
+                        <input type="text" id="post-dest-city" placeholder="City">
+                    </div>
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Destination State</label>
+                        <input type="text" id="post-dest-state" placeholder="ST" maxlength="2">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Pickup Date</label>
+                        <input type="date" id="post-pickup-date">
+                    </div>
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Delivery Date</label>
+                        <input type="date" id="post-delivery-date">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Equipment Type</label>
+                    <select id="post-equipment">
+                        <option value="V">Van</option>
+                        <option value="R">Reefer</option>
+                        <option value="F">Flatbed</option>
+                        <option value="SD">Step Deck</option>
+                        <option value="PO">Power Only</option>
+                        <option value="HS">Hotshot</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Weight (lbs)</label>
+                        <input type="number" id="post-weight" placeholder="0">
+                    </div>
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Length (ft)</label>
+                        <input type="number" id="post-length" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Rate ($)</label>
+                        <input type="number" id="post-rate" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="filter-group" style="margin-bottom: 0;">
+                        <label class="filter-label">Load Number</label>
+                        <input type="text" id="post-load-number" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Commodity</label>
+                    <input type="text" id="post-commodity" placeholder="General Freight">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Special Instructions</label>
+                    <textarea id="post-instructions" placeholder="Enter any special requirements..." style="min-height: 70px; resize: vertical;"></textarea>
+                </div>
+
+                <div class="checkbox-row">
+                    <label>
+                        <input type="checkbox" id="post-to-dat"> Post to DAT
+                    </label>
+                    <label>
+                        <input type="checkbox" id="post-to-truckstop"> Post to TruckStop
+                    </label>
+                </div>
+
+                <button class="btn-success" id="post-load-btn" style="width: 100%;">
+                    Post Load
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Load Detail Modal -->
+    <div class="modal-overlay" id="load-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Load Details</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn-success" id="book-load-btn">Book This Load</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="loadboard.js"></script>
+    <!-- particles.js disabled for performance -->
+</body>
+</html>

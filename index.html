@@ -5,489 +5,367 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0891b2">
-  <title>Flow Mobile</title>
+  <meta name="theme-color" content="#0a1628">
+  <title>Flow 🌊 Mobile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
   <style>
+    /* ═══════════════════════════════════════════════════════════════════
+       🌊 FLOW MOBILE APP - Identical to Extension Popup
+       ═══════════════════════════════════════════════════════════════════ */
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
+    
+    :root {
+      --primary: #00e5ff;
+      --primary-dark: #0e7490;
+      --secondary: #38bdf8;
+      --accent: #7c3aed;
+      --bg-dark: #0f172a;
+      --bg-darker: #0a1628;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: linear-gradient(135deg, #00e5ff 0%, #0891b2 50%, #0e7490 100%);
+      background: var(--bg-darker);
+      color: var(--text-light);
       min-height: 100vh;
-      color: white;
-      padding-bottom: 80px;
+      overflow-x: hidden;
     }
-
-    /* Header */
+    
+    /* Header - Matches Extension */
     .header {
-      padding: 20px;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(10px);
+      padding: 16px 20px;
+      background: rgba(10, 22, 40, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
       position: sticky;
       top: 0;
       z-index: 100;
-    }
-
-    .header-top {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
     }
-
-    .flow-title {
-      font-family: 'Permanent Marker', cursive;
-      font-size: 1.8rem;
-      letter-spacing: 2px;
+    
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-
+    
     .flow-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.2);
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 58, 237, 0.2));
       display: flex;
       align-items: center;
       justify-content: center;
+      border: 1px solid rgba(0, 229, 255, 0.3);
     }
-
-    .wave-container svg { width: 28px; height: 24px; }
-    .wave { fill: none; stroke: white; stroke-width: 3; stroke-linecap: round; }
+    
+    .wave-container svg { width: 32px; height: 26px; }
+    .wave { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; }
     .wave1 { animation: waveMove 1.8s ease-in-out infinite; }
     .wave2 { animation: waveMove 1.8s ease-in-out infinite 0.15s; }
     .wave3 { animation: waveMove 1.8s ease-in-out infinite 0.3s; }
     @keyframes waveMove {
-      0%, 100% { transform: translateX(0); opacity: 0.85; }
+      0%, 100% { transform: translateX(0); opacity: 0.7; }
       50% { transform: translateX(2px); opacity: 1; }
     }
-
+    
+    .header-title {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .flow-title {
+      font-family: 'Permanent Marker', cursive;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
     .sync-badge {
-      padding: 6px 12px;
-      background: rgba(34,197,94,0.2);
-      border: 1px solid rgba(34,197,94,0.4);
-      border-radius: 20px;
+      padding: 8px 14px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 50px;
       font-size: 11px;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .sync-dot {
-      width: 8px;
-      height: 8px;
-      background: #22c55e;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
-    }
-
-    /* Tab Navigation */
-    .tab-nav {
-      display: flex;
-      overflow-x: auto;
-      padding: 0 16px;
-      gap: 4px;
-      background: rgba(255,255,255,0.06);
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .tab-nav::-webkit-scrollbar { display: none; }
-
-    .tab-btn {
-      padding: 14px 16px;
-      font-size: 12px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.6);
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      color: white;
-      border-bottom-color: white;
-      background: rgba(255,255,255,0.1);
-      font-weight: 600;
-    }
-
-    /* Tab Content */
-    .tab-content { padding: 16px; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    /* Cards */
-    .card {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(15px);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .card h3 {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      transition: all 0.2s;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-
-    /* Input */
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      color: white;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.5); }
-
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: rgba(255,255,255,0.8);
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .stat-card {
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fef08a;
-    }
-
-    .stat-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.7);
-      margin-top: 4px;
-    }
-
-    /* Monitor Section */
-    .monitor-card {
-      background: rgba(255,255,255,0.15);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .monitor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .monitor-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fef08a;
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--success);
     }
-
-    .live-badge {
-      background: #22c55e;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+    
+    .sync-badge.offline {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--danger);
     }
-
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      background: white;
+    
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
       border-radius: 50%;
-      animation: pulse 1.5s infinite;
+      animation: pulse 2s infinite;
     }
-
-    /* Message Preview */
-    .message-preview {
-      background: rgba(0,0,0,0.2);
-      border-radius: 10px;
-      padding: 12px;
-      font-family: 'SF Mono', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      max-height: 120px;
-      overflow-y: auto;
+    
+    .sync-badge.offline .sync-dot {
+      background: var(--danger);
+      animation: none;
     }
-
-    /* Countdown */
-    .countdown-section {
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      margin-top: 12px;
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
     }
-
-    .countdown-timer {
-      font-size: 32px;
-      font-weight: 700;
-      color: #fef08a;
-    }
-
-    .progress-bar {
-      height: 6px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 3px;
-      overflow: hidden;
-      margin: 12px 0;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #4ade80, #fef08a);
-      transition: width 1s linear;
-    }
-
-    /* Message List */
-    .message-list {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .message-item {
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-left: 4px solid #3b82f6;
-    }
-
-    .message-item.sms { border-left-color: #22c55e; }
-    .message-item.email { border-left-color: #f59e0b; }
-
-    .message-header {
+    
+    /* Tab Navigation - Matches Extension */
+    .tab-nav {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
+      padding: 12px 16px;
+      gap: 8px;
+      background: rgba(10, 22, 40, 0.8);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
-
-    .message-carrier {
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .message-time {
-      font-size: 10px;
-      color: rgba(255,255,255,0.6);
-    }
-
-    .message-text {
-      font-size: 12px;
-      color: rgba(255,255,255,0.8);
-      line-height: 1.4;
-    }
-
-    /* Hot Load */
-    .hot-load {
-      background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.2));
-      border: 2px solid rgba(239,68,68,0.5);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .hot-load-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .hot-badge {
-      background: #ef4444;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    /* Tracking */
-    .tracking-card {
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .tracking-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .tracking-status {
+    
+    .tab-nav::-webkit-scrollbar { display: none; }
+    
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 0.7rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11px;
-      color: #4ade80;
-      font-weight: 600;
-    }
-
-    /* Bottom Nav */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(15,23,42,0.95);
-      backdrop-filter: blur(10px);
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      z-index: 1000;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: rgba(255,255,255,0.5);
-      font-size: 10px;
       cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 8px;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
       transition: all 0.2s;
     }
-
-    .nav-item.active {
-      color: white;
-      background: rgba(255,255,255,0.1);
+    
+    .tab-btn:hover {
+      color: var(--text-light);
+      border-color: rgba(0, 229, 255, 0.3);
     }
-
-    .nav-icon { font-size: 20px; }
-
-    /* Alert */
-    .alert {
-      background: linear-gradient(135deg, rgba(220,38,38,0.3), rgba(185,28,28,0.3));
-      border: 2px solid rgba(220,38,38,0.6);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 16px;
-      animation: alertPulse 2s infinite;
+    
+    .tab-btn.active {
+      color: var(--bg-darker);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
     }
-
-    @keyframes alertPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(220,38,38,0.3); }
-      50% { box-shadow: 0 0 30px rgba(220,38,38,0.5); }
-    }
-
-    .alert-header {
+    
+    /* Status Bar */
+    .status-bar {
+      padding: 12px 20px;
+      background: rgba(0, 229, 255, 0.05);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
     }
-
-    .alert-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fca5a5;
+    
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    .alert-count {
-      background: #dc2626;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 6px;
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+    
+    .status-dot.inactive {
+      background: var(--text-muted);
+      box-shadow: none;
+    }
+    
+    .status-text {
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
     }
-
+    
+    .stats-mini {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    .stats-mini strong {
+      color: var(--primary);
+      font-size: 13px;
+    }
+    
+    /* Content Area */
+    .tab-content {
+      padding: 20px;
+      padding-bottom: 100px;
+    }
+    
+    .tab-pane {
+      display: none;
+    }
+    
+    .tab-pane.active {
+      display: block;
+    }
+    
+    /* Cards - Dark Glass */
+    .card {
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 14px 24px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--bg-darker);
+      box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 8px 30px rgba(0, 229, 255, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-light);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(0, 229, 255, 0.1);
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    /* Button Grid */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .btn-grid .btn {
+      padding: 12px 16px;
+      font-size: 0.7rem;
+    }
+    
     /* Toggle Switch */
-    .toggle-container {
+    .toggle-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      margin-bottom: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-
+    
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+    
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
     .toggle-switch {
-      position: relative;
       width: 50px;
-      height: 26px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 13px;
+      height: 28px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50px;
+      position: relative;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
     }
-
-    .toggle-switch.active { background: #22c55e; }
-
+    
     .toggle-switch::after {
       content: '';
       position: absolute;
@@ -495,778 +373,749 @@
       height: 22px;
       background: white;
       border-radius: 50%;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.3s;
+      top: 3px;
+      left: 3px;
+      transition: all 0.3s;
     }
-
-    .toggle-switch.active::after { transform: translateX(24px); }
-
-    /* Loading */
-    .loading {
+    
+    .toggle-switch.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    }
+    
+    .toggle-switch.active::after {
+      left: 25px;
+    }
+    
+    /* Countdown Section */
+    .countdown-section {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(124, 58, 237, 0.1));
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
       text-align: center;
-      padding: 40px;
-      color: rgba(255,255,255,0.6);
+      display: none;
     }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 12px;
+    
+    .countdown-section.active {
+      display: block;
     }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
+    
+    .countdown-timer {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Inter', monospace;
+    }
+    
+    .countdown-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+    
+    .countdown-carrier {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 4px;
+      transition: width 1s linear;
+    }
+    
+    /* Automation Section */
+    .automation-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .automation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .automation-title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .automation-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      color: var(--text-muted);
+    }
+    
+    .automation-status.running {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+    }
+    
+    /* Message Preview */
+    .message-preview {
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    
+    /* Input Styles */
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(0, 229, 255, 0.05);
+    }
+    
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
+    }
+    
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    
+    /* Queue List */
+    .queue-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .queue-item {
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    
+    .queue-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .queue-item-carrier {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .queue-item-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
     /* Empty State */
     .empty-state {
       text-align: center;
-      padding: 30px;
-      color: rgba(255,255,255,0.5);
+      padding: 40px 20px;
+      color: var(--text-muted);
     }
-
+    
     .empty-state-icon {
-      font-size: 40px;
-      margin-bottom: 12px;
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    /* Bottom Safe Area for iOS */
+    .bottom-safe {
+      height: env(safe-area-inset-bottom, 20px);
+    }
+    
+    /* Flowboard Card */
+    .flowboard-card {
+      text-align: center;
+      padding: 30px 20px;
+    }
+    
+    .flowboard-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .flowboard-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 24px 0;
+    }
+    
+    .flowboard-feature {
+      background: rgba(255,255,255,0.08);
+      padding: 16px 10px;
+      border-radius: 12px;
+    }
+    
+    .flowboard-feature-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .flowboard-feature-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
     }
   </style>
 </head>
 <body>
+  
   <!-- Header -->
   <div class="header">
-    <div class="header-top">
-      <div class="flow-title">
-        <div class="flow-icon">
-          <div class="wave-container">
-            <svg viewBox="0 0 40 32">
-              <path class="wave wave1" d="M4,8 Q12,4 20,8 T36,8"></path>
-              <path class="wave wave2" d="M4,16 Q12,12 20,16 T36,16"></path>
-              <path class="wave wave3" d="M4,24 Q12,20 20,24 T36,24"></path>
-            </svg>
-          </div>
+    <div class="header-left">
+      <div class="flow-icon">
+        <div class="wave-container">
+          <svg viewBox="0 0 40 30">
+            <path class="wave wave1" d="M5,15 Q12,5 20,15 T35,15"/>
+            <path class="wave wave2" d="M5,20 Q12,10 20,20 T35,20"/>
+            <path class="wave wave3" d="M5,25 Q12,15 20,25 T35,25"/>
+          </svg>
         </div>
-        FLOW
       </div>
-      <div class="sync-badge" id="syncStatus">
-        <span class="sync-dot"></span>
-        <span id="syncText">SYNCED</span>
+      <div class="header-title">
+        <div class="flow-title">FLOW</div>
+        <div class="subtitle">Mobile Command Center</div>
       </div>
     </div>
+    <div class="sync-badge" id="syncBadge">
+      <div class="sync-dot"></div>
+      <span id="syncText">SYNCING...</span>
+    </div>
   </div>
-
+  
   <!-- Tab Navigation -->
   <div class="tab-nav">
-    <button class="tab-btn active" data-tab="monitor">Monitor</button>
-    <button class="tab-btn" data-tab="messages">Messages</button>
-    <button class="tab-btn" data-tab="flowboard">Flowboard</button>
-    <button class="tab-btn" data-tab="hotloads">Hot Loads</button>
-    <button class="tab-btn" data-tab="tracking">Tracking</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn active" data-tab="control">🎛️ Control</button>
+    <button class="tab-btn" data-tab="posting">📤 Posting</button>
+    <button class="tab-btn" data-tab="queue">📋 Queue</button>
+    <button class="tab-btn" data-tab="flowboard">🚛 Flowboard</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </div>
-
+  
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-dot" id="automationDot"></div>
+      <span class="status-text" id="automationText">Automation Ready</span>
+    </div>
+    <div class="stats-mini">
+      <span>Sent: <strong id="statSent">0</strong></span>
+      <span>Queue: <strong id="statQueue">0</strong></span>
+    </div>
+  </div>
+  
   <!-- Tab Content -->
   <div class="tab-content">
-
-    <!-- MONITOR TAB -->
-    <div class="tab-pane active" id="tab-monitor">
-      <!-- Quick Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="statSent">0</div>
-          <div class="stat-label">Sent</div>
+    
+    <!-- CONTROL TAB -->
+    <div class="tab-pane active" id="tab-control">
+      
+      <!-- Countdown Section -->
+      <div class="countdown-section" id="countdownSection">
+        <div class="countdown-timer" id="countdownTimer">30</div>
+        <div class="countdown-label">Seconds until send</div>
+        <div class="countdown-carrier" id="countdownCarrier">Loading carrier...</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 100%"></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statReplies">0</div>
-          <div class="stat-label">Replies</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statQueue">0</div>
-          <div class="stat-label">Queue</div>
+        <div class="btn-grid" style="margin-top: 16px;">
+          <button class="btn btn-success" id="sendNowBtn">⚡ SEND NOW</button>
+          <button class="btn btn-danger" id="skipBtn">⏭️ SKIP</button>
         </div>
       </div>
-
-      <!-- Automation Toggle -->
+      
+      <!-- Main Controls -->
       <div class="card">
-        <div class="toggle-container">
-          <div>
-            <div style="font-weight: 700; font-size: 14px;">AI Automation</div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.6);">Auto-send messages</div>
-          </div>
+        <h3>🎛️ Automation Controls</h3>
+        
+        <div class="toggle-row">
+          <span class="toggle-label">🤖 Automation Enabled</span>
           <div class="toggle-switch" id="automationToggle"></div>
         </div>
+        
+        <div class="toggle-row">
+          <span class="toggle-label">🧪 Test Mode</span>
+          <div class="toggle-switch active" id="testModeToggle"></div>
+        </div>
+        
+        <div class="toggle-row">
+          <span class="toggle-label">🧠 AI Auto-Respond</span>
+          <div class="toggle-switch" id="aiToggle"></div>
+        </div>
       </div>
-
-      <!-- Current Message -->
-      <div class="monitor-card">
-        <div class="monitor-header">
-          <div class="monitor-title">AUTONOMOUS MONITOR</div>
-          <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+      
+      <!-- Quick Actions -->
+      <div class="card">
+        <h3>⚡ Quick Actions</h3>
+        <div class="btn-grid">
+          <button class="btn btn-primary" id="extractBtn">📥 Extract</button>
+          <button class="btn btn-danger" id="stopBtn">🛑 Stop All</button>
+          <button class="btn btn-success" id="markPickedBtn">✅ Picked Up</button>
+          <button class="btn btn-success" id="markDeliveredBtn">🏁 Delivered</button>
         </div>
-
-        <label>CURRENT DRIVER</label>
-        <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid white;">
-          <div id="currentCarrier" style="font-size: 16px; font-weight: 700;">Waiting...</div>
-          <div id="currentOrder" style="font-size: 12px; color: rgba(255,255,255,0.6);">No active message</div>
-        </div>
-
-        <label>MESSAGE PREVIEW</label>
+      </div>
+      
+      <!-- Current Message Preview -->
+      <div class="card">
+        <h3>📝 Current Message</h3>
+        <div id="currentCarrierDisplay" style="font-weight: 600; margin-bottom: 8px;">No carrier selected</div>
         <div class="message-preview" id="messagePreview">
           Waiting for message...
         </div>
-
-        <!-- Countdown -->
-        <div class="countdown-section" id="countdownSection" style="display: none;">
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">SENDING IN</div>
-          <div class="countdown-timer" id="countdownTimer">30s</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressBar" style="width: 100%;"></div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px;">
-            <button class="btn btn-success" id="sendNowBtn" style="margin: 0;">SEND</button>
-            <button class="btn" id="skipBtn" style="margin: 0;">SKIP</button>
-            <button class="btn btn-danger" id="stopBtn" style="margin: 0;">STOP</button>
-          </div>
-        </div>
       </div>
-
-      <!-- Red Alerts -->
-      <div class="alert" id="alertSection" style="display: none;">
-        <div class="alert-header">
-          <div class="alert-title">RED ALERTS</div>
-          <div class="alert-count" id="alertCount">0</div>
-        </div>
-        <div id="alertList"></div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="card">
-        <h3>QUICK ACTIONS</h3>
-        <button class="btn btn-success" id="extractBtn">GO TO BOOKED LOADS</button>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button class="btn btn-warning" id="markPickedBtn">MARK PICKED</button>
-          <button class="btn btn-primary" id="markDeliveredBtn">MARK DELIVERED</button>
-        </div>
-      </div>
+      
     </div>
-
-    <!-- MESSAGES TAB -->
-    <div class="tab-pane" id="tab-messages">
-      <div class="card">
-        <h3>MESSAGE HISTORY</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
-          <button class="btn filter-btn active" data-filter="all" style="margin: 0;">All</button>
-          <button class="btn filter-btn" data-filter="email" style="margin: 0;">Email</button>
-          <button class="btn filter-btn" data-filter="sms" style="margin: 0;">SMS</button>
-        </div>
-        <div class="message-list" id="messageList">
-          <div class="empty-state">
-            <div class="empty-state-icon">No messages yet</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- HOT LOADS TAB -->
-    <div class="tab-pane" id="tab-hotloads">
-      <div class="card">
-        <h3>HOT LOADS</h3>
-        <div id="hotLoadsList">
-          <div class="empty-state">
-            <div class="empty-state-icon">No hot loads</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TRACKING TAB -->
-    <div class="tab-pane" id="tab-tracking">
-      <div class="card">
-        <h3>LIVE TRACKING</h3>
-        <div id="trackingList">
-          <div class="loading">
-            <div class="spinner"></div>
-            <div>Loading shipments...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FLOWBOARD TAB -->
-    <div class="tab-pane" id="tab-flowboard">
-      <div class="card" style="text-align: center;">
-        <div style="font-size: 48px; margin-bottom: 16px;">🚛</div>
-        <h3 style="margin-bottom: 12px;">Flowboard & Rate Tools</h3>
-        <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
-          Search loads, get rate quotes, and post to DAT & TruckStop
-        </p>
-
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-          <div style="background: rgba(255,255,255,0.1); padding: 14px 8px; border-radius: 10px;">
-            <div style="font-size: 20px; margin-bottom: 6px;">🔍</div>
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Search</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 14px 8px; border-radius: 10px;">
-            <div style="font-size: 20px; margin-bottom: 6px;">💰</div>
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Rates</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 14px 8px; border-radius: 10px;">
-            <div style="font-size: 20px; margin-bottom: 6px;">📤</div>
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Post</div>
-          </div>
-        </div>
-
-        <button class="btn btn-primary" id="openFlowboardBtn" style="background: linear-gradient(135deg, #00e5ff, #0891b2); font-weight: 700;">
-          🚀 OPEN FLOWBOARD
-        </button>
-        <p style="color: rgba(255,255,255,0.5); font-size: 10px; margin-top: 10px;">Opens in browser</p>
-      </div>
-    </div>
-
+    
     <!-- POSTING TAB -->
     <div class="tab-pane" id="tab-posting">
+      
       <div class="card">
-        <h3>AUTO-REPOST</h3>
-
+        <h3>📤 Auto-Repost Controls</h3>
+        
         <!-- Truckstop -->
-        <div style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-weight: 700;">Truckstop</div>
-            <div id="truckstopStatus" style="font-size: 11px; color: rgba(255,255,255,0.6);">STOPPED</div>
+        <div class="automation-card" style="border-left: 3px solid #3b82f6;">
+          <div class="automation-header">
+            <span class="automation-title">🚛 Truckstop</span>
+            <span class="automation-status" id="truckstopStatus">STOPPED</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="btn btn-primary" id="truckstopBtn" style="margin: 0;">REPOST</button>
-            <button class="btn" id="truckstopDeleteBtn" style="margin: 0; background: linear-gradient(135deg, #ef4444, #dc2626);">DELETE ALL</button>
+          <div class="btn-grid">
+            <button class="btn btn-primary" id="truckstopRepostBtn">▶️ REPOST</button>
+            <button class="btn btn-danger" id="truckstopDeleteBtn">🗑️ DELETE</button>
           </div>
         </div>
-
+        
         <!-- DAT -->
-        <div style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-weight: 700;">DAT</div>
-            <div id="datStatus" style="font-size: 11px; color: rgba(255,255,255,0.6);">STOPPED</div>
+        <div class="automation-card" style="border-left: 3px solid #10b981;">
+          <div class="automation-header">
+            <span class="automation-title">📊 DAT</span>
+            <span class="automation-status" id="datStatus">STOPPED</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="btn btn-success" id="datBtn" style="margin: 0;">REPOST</button>
-            <button class="btn" id="datDeleteBtn" style="margin: 0; background: linear-gradient(135deg, #ef4444, #dc2626);">DELETE ALL</button>
+          <div class="btn-grid">
+            <button class="btn btn-success" id="datRepostBtn">▶️ REPOST</button>
+            <button class="btn btn-danger" id="datDeleteBtn">🗑️ DELETE</button>
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+    <!-- QUEUE TAB -->
+    <div class="tab-pane" id="tab-queue">
+      <div class="card">
+        <h3>📋 Message Queue</h3>
+        <div class="queue-list" id="queueList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div>Queue is empty</div>
           </div>
         </div>
       </div>
-
+      
       <div class="card">
-        <h3>ADD LOAD TO SHEET</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <input type="text" id="originCity" placeholder="Origin City">
-          <input type="text" id="originState" placeholder="ST" maxlength="2" style="text-transform: uppercase;">
+        <h3>📤 Sent Messages</h3>
+        <div class="queue-list" id="sentList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📬</div>
+            <div>No messages sent yet</div>
+          </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <input type="text" id="destCity" placeholder="Dest City">
-          <input type="text" id="destState" placeholder="ST" maxlength="2" style="text-transform: uppercase;">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-          <select id="equipment">
-            <option value="">Equip</option>
-            <option value="Van">Van</option>
-            <option value="Reefer">Reefer</option>
-            <option value="Flatbed">Flatbed</option>
-          </select>
-          <input type="text" id="rate" placeholder="Rate">
-          <input type="text" id="weight" placeholder="Weight">
-        </div>
-        <button class="btn btn-success" id="addLoadBtn">ADD TO SHEET</button>
       </div>
     </div>
-
+    
+    <!-- FLOWBOARD TAB -->
+    <div class="tab-pane" id="tab-flowboard">
+      <div class="card flowboard-card">
+        <div class="flowboard-icon">🚛</div>
+        <h3 style="border: none; text-align: center; padding: 0; margin-bottom: 8px;">Flowboard & Rate Tools</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+          Search loads, get rate quotes, post to DAT & Truckstop
+        </p>
+        
+        <div class="flowboard-features">
+          <div class="flowboard-feature">
+            <div class="flowboard-feature-icon">🔍</div>
+            <div class="flowboard-feature-label">Search</div>
+          </div>
+          <div class="flowboard-feature">
+            <div class="flowboard-feature-icon">💰</div>
+            <div class="flowboard-feature-label">Rates</div>
+          </div>
+          <div class="flowboard-feature">
+            <div class="flowboard-feature-icon">📤</div>
+            <div class="flowboard-feature-label">Post</div>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="openFlowboardBtn" style="margin-top: 8px;">
+          🚀 OPEN FLOWBOARD
+        </button>
+        <p style="color: var(--text-muted); font-size: 11px; margin-top: 12px;">Opens in browser</p>
+      </div>
+    </div>
+    
     <!-- SETTINGS TAB -->
     <div class="tab-pane" id="tab-settings">
       <div class="card">
-        <h3>AUTOMATION SETTINGS</h3>
-
-        <div class="toggle-container">
-          <div>
-            <div style="font-weight: 700;">Test Mode</div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.6);">Preview without sending</div>
-          </div>
-          <div class="toggle-switch" id="testModeToggle"></div>
-        </div>
-
-        <div class="toggle-container">
-          <div>
-            <div style="font-weight: 700;">AI Auto-Response</div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.6);">Let AI handle replies</div>
-          </div>
-          <div class="toggle-switch" id="aiResponseToggle"></div>
-        </div>
-
+        <h3>⚙️ Settings</h3>
+        
         <label>Send Delay (seconds)</label>
         <input type="number" id="sendDelay" value="30" min="5" max="120">
-
+        
         <label>Message Channel</label>
         <select id="messageChannel">
-          <option value="email">Email Only</option>
-          <option value="sms">SMS Only</option>
-          <option value="both">Both Email & SMS</option>
+          <option value="email">Email</option>
+          <option value="sms">SMS</option>
+          <option value="both">Both</option>
         </select>
-
-        <button class="btn btn-primary" id="saveSettingsBtn">SAVE SETTINGS</button>
+        
+        <button class="btn btn-primary" id="saveSettingsBtn" style="margin-top: 8px;">
+          💾 Save Settings
+        </button>
       </div>
-
+      
       <div class="card">
-        <h3>ACCOUNT</h3>
-        <label>Outlook Email</label>
-        <input type="email" id="outlookEmail" placeholder="your@outlook.com" readonly>
-
-        <label>Google Voice Status</label>
-        <div id="gvStatus" style="padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px;">
-          Check extension for status
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>SYNC STATUS</h3>
-        <div id="lastSyncTime" style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 12px;">
-          Last sync: Never
-        </div>
-        <button class="btn" id="forceSyncBtn">FORCE SYNC</button>
+        <h3>🔄 Sync</h3>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">
+          Last sync: <span id="lastSyncTime">Never</span>
+        </p>
+        <button class="btn btn-secondary" id="forceSyncBtn">
+          🔄 Force Sync
+        </button>
       </div>
     </div>
+    
   </div>
-
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div class="nav-item active" data-tab="monitor">
-      <span class="nav-icon">Monitor</span>
-    </div>
-    <div class="nav-item" data-tab="messages">
-      <span class="nav-icon">Messages</span>
-    </div>
-    <div class="nav-item" data-tab="flowboard">
-      <span class="nav-icon">Flow</span>
-    </div>
-    <div class="nav-item" data-tab="tracking">
-      <span class="nav-icon">Track</span>
-    </div>
-    <div class="nav-item" data-tab="settings">
-      <span class="nav-icon">Settings</span>
-    </div>
-  </div>
-
-  <!-- Socket.io for real-time sync with backend -->
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
+  
+  <div class="bottom-safe"></div>
+  
   <script>
     // ═══════════════════════════════════════════════════════════════════
-    // SOCKET.IO CONNECTION TO BACKEND (for real-time sync)
+    // 🔥 FIREBASE SYNC - Real-time connection to Extension
     // ═══════════════════════════════════════════════════════════════════
-    const API_BASE = 'http://localhost:3000';
-    let socket = null;
-    let authToken = localStorage.getItem('authToken');
-    let userId = localStorage.getItem('userId');
-
-    function initSocketConnection() {
-      try {
-        socket = io(API_BASE);
-        
-        socket.on('connect', () => {
-          console.log('✅ Socket.io connected to backend');
-          document.getElementById('syncText').textContent = 'LIVE';
-          if (userId) socket.emit('join-user', userId);
-        });
-
-        socket.on('disconnect', () => {
-          console.log('❌ Socket.io disconnected');
-          document.getElementById('syncText').textContent = 'OFFLINE';
-        });
-
-        // Real-time countdown updates
-        socket.on('countdown:started', (data) => {
-          console.log('⏱️ Countdown started:', data);
-          document.getElementById('countdownSection').style.display = 'block';
-          document.getElementById('countdownTimer').textContent = (data.seconds || 30) + 's';
-          document.getElementById('currentCarrier').textContent = data.carrier || 'Unknown';
-          document.getElementById('messagePreview').textContent = data.message || 'Pending...';
-          document.getElementById('statQueue').textContent = data.queueSize || 1;
-        });
-
-        socket.on('countdown:cancelled', () => {
-          console.log('❌ Countdown cancelled');
-          document.getElementById('countdownSection').style.display = 'none';
-          document.getElementById('currentCarrier').textContent = 'Waiting...';
-          document.getElementById('messagePreview').textContent = 'Waiting for message...';
-        });
-
-        socket.on('message:sent', (data) => {
-          console.log('📤 Message sent:', data);
-          const sent = parseInt(document.getElementById('statSent').textContent) || 0;
-          document.getElementById('statSent').textContent = sent + 1;
-        });
-
-      } catch (e) {
-        console.error('Socket.io error:', e);
-      }
-    }
-
-    // Initialize socket on page load
-    initSocketConnection();
-
-    // Flowboard button handler
-    document.getElementById('openFlowboardBtn')?.addEventListener('click', () => {
-      window.open('loadboard.html', '_blank');
-    });
-
-    // Firebase Configuration
+    
     const firebaseConfig = {
-      apiKey: "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxx",
-      databaseURL: "https://kof-mobile-sync-default-rtdb.firebaseio.com",
-      projectId: "kof-mobile-sync"
+      databaseURL: "https://kof-mobile-sync-default-rtdb.firebaseio.com"
     };
-
-    // Initialize Firebase
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const syncRef = db.ref('flow-sync');
-
+    
     // State
     let state = {
       automationEnabled: false,
       testMode: true,
       aiAutoRespond: false,
       sendDelay: 30,
-      messageChannel: 'email',
-      currentCarrier: null,
-      currentMessage: null,
       countdown: 0,
-      queue: [],
-      sentMessages: [],
-      hotLoads: [],
-      alerts: []
+      connected: false
     };
-
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // 📤 SEND COMMANDS TO EXTENSION
+    // ═══════════════════════════════════════════════════════════════════
+    
+    function sendToExtension(action, data = {}) {
+      console.log('📤 Sending to extension:', action, data);
+      syncRef.child('fromMobile').set({
+        action: action,
+        ...data,
+        timestamp: Date.now()
+      });
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // 📥 RECEIVE UPDATES FROM EXTENSION
+    // ═══════════════════════════════════════════════════════════════════
+    
+    syncRef.child('fromExtension').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      
+      console.log('📥 Received from extension:', data);
+      state.connected = true;
+      updateSyncBadge(true);
+      
+      // Update automation status
+      if (data.automationEnabled !== undefined) {
+        state.automationEnabled = data.automationEnabled;
+        document.getElementById('automationToggle').classList.toggle('active', data.automationEnabled);
+        document.getElementById('automationDot').classList.toggle('inactive', !data.automationEnabled);
+        document.getElementById('automationText').textContent = data.automationEnabled ? 'Automation Active' : 'Automation Ready';
+      }
+      
+      // Update test mode
+      if (data.testMode !== undefined) {
+        state.testMode = data.testMode;
+        document.getElementById('testModeToggle').classList.toggle('active', data.testMode);
+      }
+      
+      // Update AI toggle
+      if (data.aiAutoRespond !== undefined) {
+        state.aiAutoRespond = data.aiAutoRespond;
+        document.getElementById('aiToggle').classList.toggle('active', data.aiAutoRespond);
+      }
+      
+      // Update countdown
+      if (data.countdown !== undefined) {
+        updateCountdown(data.countdown, data.currentCarrier, data.currentMessage);
+      }
+      
+      // Update stats
+      if (data.stats) {
+        document.getElementById('statSent').textContent = data.stats.sent || 0;
+        document.getElementById('statQueue').textContent = data.stats.queue || 0;
+      }
+      
+      // Update Truckstop/DAT status
+      if (data.truckstopStatus) {
+        const el = document.getElementById('truckstopStatus');
+        el.textContent = data.truckstopStatus;
+        el.classList.toggle('running', data.truckstopStatus.includes('ING'));
+      }
+      if (data.datStatus) {
+        const el = document.getElementById('datStatus');
+        el.textContent = data.datStatus;
+        el.classList.toggle('running', data.datStatus.includes('ING'));
+      }
+      
+      // Update sent messages
+      if (data.sentMessages) {
+        renderSentMessages(data.sentMessages);
+      }
+      
+      document.getElementById('lastSyncTime').textContent = new Date().toLocaleTimeString();
+    });
+    
+    // Connection state
+    db.ref('.info/connected').on('value', (snapshot) => {
+      const connected = snapshot.val();
+      updateSyncBadge(connected);
+    });
+    
+    function updateSyncBadge(connected) {
+      const badge = document.getElementById('syncBadge');
+      const text = document.getElementById('syncText');
+      if (connected) {
+        badge.classList.remove('offline');
+        text.textContent = 'LIVE';
+      } else {
+        badge.classList.add('offline');
+        text.textContent = 'OFFLINE';
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // 🎛️ UI UPDATES
+    // ═══════════════════════════════════════════════════════════════════
+    
+    function updateCountdown(seconds, carrier, message) {
+      const section = document.getElementById('countdownSection');
+      const timer = document.getElementById('countdownTimer');
+      const carrierEl = document.getElementById('countdownCarrier');
+      const progress = document.getElementById('progressFill');
+      const preview = document.getElementById('messagePreview');
+      const carrierDisplay = document.getElementById('currentCarrierDisplay');
+      
+      if (seconds > 0) {
+        section.classList.add('active');
+        timer.textContent = seconds;
+        progress.style.width = (seconds / state.sendDelay * 100) + '%';
+        
+        if (carrier) {
+          carrierEl.textContent = carrier.company || carrier.email || 'Unknown Carrier';
+          carrierDisplay.textContent = carrier.company || carrier.email || 'Unknown Carrier';
+        }
+        if (message) {
+          preview.textContent = message;
+        }
+      } else {
+        section.classList.remove('active');
+      }
+    }
+    
+    function renderSentMessages(messages) {
+      const list = document.getElementById('sentList');
+      if (!messages || messages.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📬</div><div>No messages sent yet</div></div>';
+        return;
+      }
+      
+      list.innerHTML = messages.slice(-20).reverse().map(msg => `
+        <div class="queue-item">
+          <div class="queue-item-header">
+            <span class="queue-item-carrier">${msg.carrier || 'Unknown'}</span>
+            <span class="queue-item-time">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // 🎯 EVENT HANDLERS
+    // ═══════════════════════════════════════════════════════════════════
+    
     // Tab Navigation
-    document.querySelectorAll('.tab-btn, .nav-item').forEach(btn => {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-
-        // Update tabs
-        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-        document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
-        document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
+        
+        btn.classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
       });
     });
-
+    
     // Toggle Switches
     document.getElementById('automationToggle').addEventListener('click', function() {
       this.classList.toggle('active');
       state.automationEnabled = this.classList.contains('active');
-      syncToFirebase({ automationEnabled: state.automationEnabled });
+      sendToExtension('toggleAutomation', { enabled: state.automationEnabled });
     });
-
+    
     document.getElementById('testModeToggle').addEventListener('click', function() {
       this.classList.toggle('active');
       state.testMode = this.classList.contains('active');
-      syncToFirebase({ testMode: state.testMode });
+      sendToExtension('toggleTestMode', { enabled: state.testMode });
     });
-
-    document.getElementById('aiResponseToggle').addEventListener('click', function() {
+    
+    document.getElementById('aiToggle').addEventListener('click', function() {
       this.classList.toggle('active');
       state.aiAutoRespond = this.classList.contains('active');
-      syncToFirebase({ aiAutoRespond: state.aiAutoRespond });
+      sendToExtension('toggleAI', { enabled: state.aiAutoRespond });
     });
-
-    // Action Buttons
+    
+    // Control Buttons
     document.getElementById('sendNowBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'sendNow', timestamp: Date.now() });
+      sendToExtension('sendNow');
     });
-
+    
     document.getElementById('skipBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'skip', timestamp: Date.now() });
+      sendToExtension('skip');
     });
-
+    
     document.getElementById('stopBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'stop', timestamp: Date.now() });
+      sendToExtension('stop');
     });
-
+    
     document.getElementById('extractBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'extract', timestamp: Date.now() });
+      sendToExtension('extract');
     });
-
+    
     document.getElementById('markPickedBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'markPicked', timestamp: Date.now() });
+      sendToExtension('markPicked');
     });
-
+    
     document.getElementById('markDeliveredBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'markDelivered', timestamp: Date.now() });
+      sendToExtension('markDelivered');
     });
-
-    document.getElementById('truckstopBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'truckstopRepost', timestamp: Date.now() });
-      document.getElementById('truckstopStatus').textContent = 'REPOSTING...';
+    
+    // Posting Buttons
+    document.getElementById('truckstopRepostBtn').addEventListener('click', () => {
+      sendToExtension('truckstopRepost');
+      document.getElementById('truckstopStatus').textContent = 'STARTING...';
     });
-
+    
     document.getElementById('truckstopDeleteBtn').addEventListener('click', () => {
       if (confirm('Delete ALL Truckstop loads?')) {
-        syncToFirebase({ action: 'truckstopDelete', timestamp: Date.now() });
+        sendToExtension('truckstopDelete');
         document.getElementById('truckstopStatus').textContent = 'DELETING...';
       }
     });
-
-    document.getElementById('datBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'datRepost', timestamp: Date.now() });
-      document.getElementById('datStatus').textContent = 'REPOSTING...';
+    
+    document.getElementById('datRepostBtn').addEventListener('click', () => {
+      sendToExtension('datRepost');
+      document.getElementById('datStatus').textContent = 'STARTING...';
     });
-
+    
     document.getElementById('datDeleteBtn').addEventListener('click', () => {
       if (confirm('Delete ALL DAT loads?')) {
-        syncToFirebase({ action: 'datDelete', timestamp: Date.now() });
+        sendToExtension('datDelete');
         document.getElementById('datStatus').textContent = 'DELETING...';
       }
     });
-
+    
+    // Flowboard
+    document.getElementById('openFlowboardBtn').addEventListener('click', () => {
+      // Open flowboard - hosted version
+      window.open('https://codedog33000-ai.github.io/flow-mobile-app/loadboard.html', '_blank');
+    });
+    
+    // Settings
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
       state.sendDelay = parseInt(document.getElementById('sendDelay').value) || 30;
       state.messageChannel = document.getElementById('messageChannel').value;
-      syncToFirebase({
+      sendToExtension('updateSettings', {
         sendDelay: state.sendDelay,
         messageChannel: state.messageChannel
       });
       alert('Settings saved!');
     });
-
+    
     document.getElementById('forceSyncBtn').addEventListener('click', () => {
-      syncToFirebase({ action: 'forceSync', timestamp: Date.now() });
-      document.getElementById('lastSyncTime').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
+      sendToExtension('requestSync');
+      document.getElementById('lastSyncTime').textContent = 'Syncing...';
     });
-
-    document.getElementById('addLoadBtn').addEventListener('click', () => {
-      const load = {
-        originCity: document.getElementById('originCity').value,
-        originState: document.getElementById('originState').value,
-        destCity: document.getElementById('destCity').value,
-        destState: document.getElementById('destState').value,
-        equipment: document.getElementById('equipment').value,
-        rate: document.getElementById('rate').value,
-        weight: document.getElementById('weight').value
-      };
-      syncToFirebase({ action: 'addLoad', load, timestamp: Date.now() });
-      alert('Load added to queue!');
-      // Clear form
-      ['originCity', 'originState', 'destCity', 'destState', 'rate', 'weight'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      document.getElementById('equipment').value = '';
-    });
-
-    // Filter Buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filterMessages(btn.dataset.filter);
-      });
-    });
-
-    function filterMessages(filter) {
-      const items = document.querySelectorAll('.message-item');
-      items.forEach(item => {
-        if (filter === 'all') {
-          item.style.display = 'block';
-        } else {
-          item.style.display = item.classList.contains(filter) ? 'block' : 'none';
-        }
-      });
-    }
-
-    // Sync to Firebase
-    function syncToFirebase(data) {
-      syncRef.child('fromMobile').set({
-        ...data,
-        timestamp: Date.now()
-      });
-    }
-
-    // Listen for updates from extension
-    syncRef.child('fromExtension').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-
-      console.log('Received from extension:', data);
-
-      // Update UI based on received data
-      if (data.automationEnabled !== undefined) {
-        state.automationEnabled = data.automationEnabled;
-        document.getElementById('automationToggle').classList.toggle('active', data.automationEnabled);
-      }
-
-      if (data.testMode !== undefined) {
-        state.testMode = data.testMode;
-        document.getElementById('testModeToggle').classList.toggle('active', data.testMode);
-      }
-
-      if (data.currentCarrier) {
-        document.getElementById('currentCarrier').textContent = data.currentCarrier.company || 'Unknown';
-        document.getElementById('currentOrder').textContent = `Order: ${data.currentCarrier.orderNo || 'N/A'}`;
-      }
-
-      if (data.currentMessage) {
-        document.getElementById('messagePreview').textContent = data.currentMessage;
-      }
-
-      if (data.countdown !== undefined) {
-        state.countdown = data.countdown;
-        updateCountdown(data.countdown);
-      }
-
-      if (data.stats) {
-        document.getElementById('statSent').textContent = data.stats.sent || 0;
-        document.getElementById('statReplies').textContent = data.stats.replies || 0;
-        document.getElementById('statQueue').textContent = data.stats.queue || 0;
-      }
-
-      if (data.sentMessages) {
-        renderMessages(data.sentMessages);
-      }
-
-      if (data.hotLoads) {
-        renderHotLoads(data.hotLoads);
-      }
-
-      if (data.alerts) {
-        renderAlerts(data.alerts);
-      }
-
-      if (data.tracking) {
-        renderTracking(data.tracking);
-      }
-
-      // Update Truckstop/DAT status from extension
-      if (data.truckstopStatus) {
-        document.getElementById('truckstopStatus').textContent = data.truckstopStatus;
-      }
-      if (data.datStatus) {
-        document.getElementById('datStatus').textContent = data.datStatus;
-      }
-
-      document.getElementById('lastSyncTime').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
-    });
-
-    function updateCountdown(seconds) {
-      const section = document.getElementById('countdownSection');
-      if (seconds > 0) {
-        section.style.display = 'block';
-        document.getElementById('countdownTimer').textContent = `${seconds}s`;
-        const progress = (seconds / state.sendDelay) * 100;
-        document.getElementById('progressBar').style.width = `${progress}%`;
-      } else {
-        section.style.display = 'none';
-      }
-    }
-
-    function renderMessages(messages) {
-      const list = document.getElementById('messageList');
-      if (!messages || messages.length === 0) {
-        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">No messages yet</div></div>';
-        return;
-      }
-
-      list.innerHTML = messages.slice(0, 50).map(msg => `
-        <div class="message-item ${msg.channel || 'email'}">
-          <div class="message-header">
-            <div class="message-carrier">${msg.carrier || 'Unknown'}</div>
-            <div class="message-time">${formatTime(msg.timestamp)}</div>
-          </div>
-          <div class="message-text">${truncate(msg.message, 100)}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderHotLoads(loads) {
-      const list = document.getElementById('hotLoadsList');
-      if (!loads || loads.length === 0) {
-        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">No hot loads</div></div>';
-        return;
-      }
-
-      list.innerHTML = loads.map(load => `
-        <div class="hot-load">
-          <div class="hot-load-header">
-            <div style="font-weight: 700;">${load.origin} > ${load.dest}</div>
-            <div class="hot-badge">HOT</div>
-          </div>
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7);">
-            ${load.equipment || 'Van'} | ${load.rate || 'Call'} | ${load.weight || 'N/A'} lbs
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderAlerts(alerts) {
-      const section = document.getElementById('alertSection');
-      const list = document.getElementById('alertList');
-      const count = document.getElementById('alertCount');
-
-      if (!alerts || alerts.length === 0) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-      count.textContent = alerts.length;
-
-      list.innerHTML = alerts.map(alert => `
-        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
-          <div style="font-weight: 700; font-size: 13px;">${alert.carrier}</div>
-          <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${alert.message}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderTracking(shipments) {
-      const list = document.getElementById('trackingList');
-      if (!shipments || shipments.length === 0) {
-        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">No active shipments</div></div>';
-        return;
-      }
-
-      list.innerHTML = shipments.map(ship => `
-        <div class="tracking-card">
-          <div class="tracking-header">
-            <div style="font-weight: 700;">${ship.loadNumber || 'N/A'}</div>
-            <div class="tracking-status">
-              <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%;"></span>
-              ${ship.status || 'In Transit'}
-            </div>
-          </div>
-          <div style="font-size: 12px; color: rgba(255,255,255,0.7);">
-            ${ship.origin || 'Origin'} > ${ship.dest || 'Destination'}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function formatTime(timestamp) {
-      if (!timestamp) return '';
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function truncate(text, length) {
-      if (!text) return '';
-      return text.length > length ? text.substring(0, length) + '...' : text;
-    }
-
-    // Initial sync request
-    syncToFirebase({ action: 'requestSync', timestamp: Date.now() });
-
-    console.log('Flow Mobile App loaded - Firebase sync active');
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // 🚀 INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════
+    
+    console.log('🌊 Flow Mobile App loaded');
+    console.log('📡 Firebase sync active');
+    
+    // Request initial sync
+    sendToExtension('requestSync');
   </script>
 </body>
 </html>
